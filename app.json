@@ -1,0 +1,6 @@
+{
+  "name": "Ingester",
+  "description": "Used to create streams for the Ably Hub",
+  "repository": "https://github.com/ably/ingester",
+  "keywords": ["node", "ably"]
+}

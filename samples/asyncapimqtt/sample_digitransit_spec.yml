@@ -1,0 +1,901 @@
+asyncapi: '2.0.0'
+info:
+  title: Digitransit MQTT High frequency positioning
+  version: '1.0.0'
+  contact:
+    name: Digitransit
+    url: 'https://digitransit.fi/en/developers'
+  description: "Transport data for Digitransit"
+
+servers:
+  mqtts:
+    url: 'mqtts://mqtt.hsl.fi:8883'
+    protocol: secure-mqtt
+    description: "The bare MQTT protocol with TLS, lightweight."
+  wss:
+    url: 'wss://mqtt.hsl.fi:443/'
+    protocol: wss
+    description: "MQTT over WebSockets with TLS, for browsers."
+  mqtt:
+    url: 'mqtt://mqtt.hsl.fi:1883'
+    protocol: mqtt
+    description: "The bare MQTT protocol without TLS, lightweight. Prefer the port 8883 to respect the locational privacy of your users."
+  ws:
+    url: 'ws://mqtt.hsl.fi:1883/'
+    protocol: ws
+    description: "MQTT over WebSockets without TLS. Prefer the port 443 to respect the locational privacy of your users."
+
+defaultContentType: application/json
+
+channels:
+  '/hfp/v2/journey/ongoing/vp/bus/{operatorId}/{vehicleNumber}/{routeId}/{directionId}/{headsign}/{startTime}/{nextStop}/3/{geohash}/{sid}/#':
+    subscribe:
+      summary: Vehicle and journey information
+      operationId: receiveVehicleUpdate
+      message:
+        oneOf:
+          - $ref: '#/components/messages/vpMsg'
+          - $ref: '#/components/messages/dueMsg'
+          - $ref: '#/components/messages/arrMsg'
+          - $ref: '#/components/messages/depMsg'
+          - $ref: '#/components/messages/arsMsg'
+          - $ref: '#/components/messages/pdeMsg'
+          - $ref: '#/components/messages/pasMsg'
+          - $ref: '#/components/messages/waitMsg'
+          - $ref: '#/components/messages/dooMsg'
+          - $ref: '#/components/messages/docMsg'
+          - $ref: '#/components/messages/tlrMsg'
+          - $ref: '#/components/messages/tlaMsg'
+          - $ref: '#/components/messages/doutMsg'
+          - $ref: '#/components/messages/arrMsg'
+          - $ref: '#/components/messages/baMsg'
+          - $ref: '#/components/messages/boutMsg'
+          - $ref: '#/components/messages/vjaMsg'
+          - $ref: '#/components/messages/vjoutMsg'
+    parameters:
+      operatorId:
+        $ref: '#/components/parameters/operatorId'
+      vehicleNumber:
+        $ref: '#/components/parameters/vehicleNumber'
+      routeId:
+        $ref: '#/components/parameters/routeId'
+      directionId:
+        $ref: '#/components/parameters/directionId'
+      headsign:
+        $ref: '#/components/parameters/headsign'
+      startTime:
+        $ref: '#/components/parameters/startTime'
+      nextStop:
+        $ref: '#/components/parameters/nextStop'
+      geohash:
+        $ref: '#/components/parameters/geohash'
+      sid:
+        $ref: '#/components/parameters/sid'
+
+components:
+  messages:
+    vpMsg:
+      name: VP message
+      title: VP
+      payload:
+        type: object
+        properties:
+          VP:
+            description: Vehicle Position
+            $ref: '#/components/schemas/vehiclePosition'
+    dueMsg:
+      name: DUE message
+      title: DUE
+      payload:
+        type: object
+        properties:
+          DUE:
+            description: Vehicle will soon arrive to a stop
+            $ref: '#/components/schemas/vehiclePosition'
+    arrMsg:
+      name: ARR message
+      title: ARR
+      payload:
+        type: object
+        properties:
+          ARR:
+            description: Vehicle arrives inside of a stop radius
+            $ref: '#/components/schemas/vehiclePosition'
+    depMsg:
+      name: DEP message
+      title: DEP
+      payload:
+        type: object
+        properties:
+          DEP:
+            description: Vehicle departs from a stop and leaves the stop radius
+            $ref: '#/components/schemas/vehiclePosition'
+    arsMsg:
+      name: ARS message
+      title: ARS
+      payload:
+        type: object
+        properties:
+          ARS:
+            description: Vehicle has arrived to a stop
+            $ref: '#/components/schemas/vehiclePosition'
+    pdeMsg:
+      name: PDE message
+      title: PDE
+      payload:
+        type: object
+        properties:
+          PDE:
+            description: Vehicle is ready to depart from a stop
+            $ref: '#/components/schemas/vehiclePosition'
+    pasMsg:
+      name: PAS message
+      title: PAS
+      payload:
+        type: object
+        properties:
+          PAS:
+            description: Vehicle passes through a stop without stopping
+            $ref: '#/components/schemas/vehiclePosition'
+    waitMsg:
+      name: WAIT message
+      title: WAIT
+      payload:
+        type: object
+        properties:
+          WAIT:
+            description: Vehicle is waiting at a stop
+            $ref: '#/components/schemas/vehiclePosition'
+    dooMsg:
+      name: DOO message
+      title: DOO
+      payload:
+        type: object
+        properties:
+          DOO:
+            description: Doors of the vehicle are opened
+            $ref: '#/components/schemas/vehiclePosition'
+    docMsg:
+      name: DOC message
+      title: DOC
+      payload:
+        type: object
+        properties:
+          DOC:
+            description: Doors of the vehicle are closed
+            $ref: '#/components/schemas/vehiclePosition'
+    tlrMsg:
+      name: TLR message
+      title: TLR
+      payload:
+        type: object
+        properties:
+          TLR:
+            description: Vehicle is requesting traffic light priority
+            $ref: '#/components/schemas/tlrObject'
+    tlaMsg:
+      name: TLA message
+      title: TLA
+      payload:
+        type: object
+        properties:
+          TLA:
+            description: Vehicle receives a response to traffic light priority request
+            $ref: '#/components/schemas/tlaObject'
+    daMsg:
+      name: DA message
+      title: DA
+      payload:
+        type: object
+        properties:
+          DA:
+            description: Driver signs in to the vehicle
+            $ref: '#/components/schemas/daDoutObject'
+    doutMsg:
+      name: DOUT message
+      title: DOUT
+      payload:
+        type: object
+        properties:
+          DOUT:
+            description: Driver signs out of the vehicle
+            $ref: '#/components/schemas/daDoutObject'
+    baMsg:
+      name: BA message
+      title: BA
+      payload:
+        type: object
+        properties:
+          BA:
+            description: Driver selects the block that the vehicle will run
+            $ref: '#/components/schemas/baBoutObject'
+    boutMsg:
+      name: BOUT message
+      title: BOUT
+      payload:
+        type: object
+        properties:
+          BOUT:
+            description: Driver signs out from the selected block (usually from a depot)
+            $ref: '#/components/schemas/baBoutObject'
+    vjaMsg:
+      name: VJA message
+      title: VJA
+      payload:
+        type: object
+        properties:
+          VJA:
+            description: Vehicle signs in to a service journey (i.e. a single public transport journey from location A to location B, also known as trip)
+            $ref: '#/components/schemas/vjaVjoutObject'
+    vjoutMsg:
+      name: VJOUT message
+      title: VJOUT
+      payload:
+        type: object
+        properties:
+          VJOUT:
+            description: Vehicle signs off from a service journey, after reaching the final stop
+            $ref: '#/components/schemas/vjaVjoutObject'
+
+  schemas:
+    vehiclePosition:
+      type: object
+      properties:
+          desi:
+            $ref: "#/components/schemas/desi"
+          dir:
+            $ref: "#/components/schemas/dir"
+          oper:
+            $ref: "#/components/schemas/oper"
+          veh:
+            $ref: "#/components/schemas/veh"
+          tst:
+            $ref: "#/components/schemas/tst"
+          tsi:
+            $ref: "#/components/schemas/tsi"
+          spd:
+            $ref: "#/components/schemas/spd"
+          hdg:
+            $ref: "#/components/schemas/hdg"
+          lat:
+            $ref: "#/components/schemas/lat"
+          long:
+            $ref: "#/components/schemas/long"
+          acc:
+            $ref: "#/components/schemas/acc"
+          dl:
+            $ref: "#/components/schemas/dl"
+          odo:
+            $ref: "#/components/schemas/odo"
+          drst:
+            $ref: "#/components/schemas/drst"
+          oday:
+            $ref: "#/components/schemas/oday"
+          jrn:
+            $ref: "#/components/schemas/jrn"
+          line:
+            $ref: "#/components/schemas/line"
+          start:
+            $ref: "#/components/schemas/start"
+          loc:
+            $ref: "#/components/schemas/loc"
+          stop:
+            $ref: "#/components/schemas/stop"
+          route:
+            $ref: "#/components/schemas/route"
+          occu:
+            $ref: "#/components/schemas/occu"
+          seq:
+            $ref: "#/components/schemas/seq"
+          label:
+            $ref: "#/components/schemas/label"
+    tlrObject:
+      type: object
+      properties:
+          desi:
+            $ref: "#/components/schemas/desi"
+          dir:
+            $ref: "#/components/schemas/dir"
+          oper:
+            $ref: "#/components/schemas/oper"
+          veh:
+            $ref: "#/components/schemas/veh"
+          tst:
+            $ref: "#/components/schemas/tst"
+          tsi:
+            $ref: "#/components/schemas/tsi"
+          spd:
+            $ref: "#/components/schemas/spd"
+          hdg:
+            $ref: "#/components/schemas/hdg"
+          lat:
+            $ref: "#/components/schemas/lat"
+          long:
+            $ref: "#/components/schemas/long"
+          acc:
+            $ref: "#/components/schemas/acc"
+          dl:
+            $ref: "#/components/schemas/dl"
+          odo:
+            $ref: "#/components/schemas/odo"
+          drst:
+            $ref: "#/components/schemas/drst"
+          oday:
+            $ref: "#/components/schemas/oday"
+          jrn:
+            $ref: "#/components/schemas/jrn"
+          line:
+            $ref: "#/components/schemas/line"
+          start:
+            $ref: "#/components/schemas/start"
+          loc:
+            $ref: "#/components/schemas/loc"
+          stop:
+            $ref: "#/components/schemas/stop"
+          route:
+            $ref: "#/components/schemas/route"
+          occu:
+            $ref: "#/components/schemas/occu"
+          seq:
+            $ref: "#/components/schemas/seq"
+          label:
+            $ref: "#/components/schemas/label"
+          tlp-requestid:
+            $ref: "#/components/schemas/tlp-requestid"
+          tlp-requesttype:
+            $ref: "#/components/schemas/tlp-requesttype"
+          tlp-prioritylevel:
+            $ref: "#/components/schemas/tlp-prioritylevel"
+          tlp-reason:
+            $ref: "#/components/schemas/tlp-reason"
+          tlp-att-seq:
+            $ref: "#/components/schemas/tlp-reason"
+          sid:
+            $ref: "#/components/schemas/sid"
+          signal-groupid:
+            $ref: "#/components/schemas/signal-groupid"
+          tlp-signalgroupnbr:
+            $ref: "#/components/schemas/tlp-signalgroupnbr"
+          tlp-line-configid:
+            $ref: "#/components/schemas/tlp-line-configid"
+          tlp-point-configid:
+            $ref: "#/components/schemas/tlp-point-configid"
+          tlp-frequency:
+            $ref: "#/components/schemas/tlp-frequency"
+          tlp-protocol:
+            $ref: "#/components/schemas/tlp-protocol"
+    tlaObject:
+      type: object
+      properties:
+        desi:
+          $ref: "#/components/schemas/desi"
+        dir:
+          $ref: "#/components/schemas/dir"
+        oper:
+          $ref: "#/components/schemas/oper"
+        veh:
+          $ref: "#/components/schemas/veh"
+        tst:
+          $ref: "#/components/schemas/tst"
+        tsi:
+          $ref: "#/components/schemas/tsi"
+        spd:
+          $ref: "#/components/schemas/spd"
+        hdg:
+          $ref: "#/components/schemas/hdg"
+        lat:
+          $ref: "#/components/schemas/lat"
+        long:
+          $ref: "#/components/schemas/long"
+        acc:
+          $ref: "#/components/schemas/acc"
+        dl:
+          $ref: "#/components/schemas/dl"
+        odo:
+          $ref: "#/components/schemas/odo"
+        drst:
+          $ref: "#/components/schemas/drst"
+        oday:
+          $ref: "#/components/schemas/oday"
+        jrn:
+          $ref: "#/components/schemas/jrn"
+        line:
+          $ref: "#/components/schemas/line"
+        start:
+          $ref: "#/components/schemas/start"
+        loc:
+          $ref: "#/components/schemas/loc"
+        stop:
+          $ref: "#/components/schemas/stop"
+        route:
+          $ref: "#/components/schemas/route"
+        occu:
+          $ref: "#/components/schemas/occu"
+        seq:
+          $ref: "#/components/schemas/seq"
+        label:
+          $ref: "#/components/schemas/label"
+        tlp-requestid:
+          $ref: "#/components/schemas/tlp-requestid"
+        tlp-decision:
+          $ref: "#/components/schemas/tlp-decision"
+    daDoutObject:
+      type: object
+      properties:
+        oper:
+          $ref: "#/components/schemas/oper"
+        veh:
+          $ref: "#/components/schemas/veh"
+        tst:
+          $ref: "#/components/schemas/tst"
+        tsi:
+          $ref: "#/components/schemas/tsi"
+        spd:
+          $ref: "#/components/schemas/spd"
+        hdg:
+          $ref: "#/components/schemas/hdg"
+        lat:
+          $ref: "#/components/schemas/lat"
+        long:
+          $ref: "#/components/schemas/long"
+        acc:
+          $ref: "#/components/schemas/acc"
+        odo:
+          $ref: "#/components/schemas/odo"
+        drst:
+          $ref: "#/components/schemas/drst"
+        loc:
+          $ref: "#/components/schemas/loc"
+        seq:
+          $ref: "#/components/schemas/seq"
+        label:
+          $ref: "#/components/schemas/label"
+        dr-type:
+          $ref: "#/components/schemas/dr-type"
+    baBoutObject:
+      type: object
+      properties:
+        oper:
+          $ref: "#/components/schemas/oper"
+        veh:
+          $ref: "#/components/schemas/veh"
+        tst:
+          $ref: "#/components/schemas/tst"
+        tsi:
+          $ref: "#/components/schemas/tsi"
+        spd:
+          $ref: "#/components/schemas/spd"
+        hdg:
+          $ref: "#/components/schemas/hdg"
+        lat:
+          $ref: "#/components/schemas/lat"
+        long:
+          $ref: "#/components/schemas/long"
+        acc:
+          $ref: "#/components/schemas/acc"
+        odo:
+          $ref: "#/components/schemas/odo"
+        drst:
+          $ref: "#/components/schemas/drst"
+        oday:
+          $ref: "#/components/schemas/oday"
+        loc:
+          $ref: "#/components/schemas/loc"
+        seq:
+          $ref: "#/components/schemas/seq"
+        label:
+          $ref: "#/components/schemas/label"
+        dr-type:
+          $ref: "#/components/schemas/dr-type"
+    vjaVjoutObject:
+      type: object
+      properties:
+        desi:
+          $ref: "#/components/schemas/desi"
+        dir:
+          $ref: "#/components/schemas/dir"
+        oper:
+          $ref: "#/components/schemas/oper"
+        veh:
+          $ref: "#/components/schemas/veh"
+        tst:
+          $ref: "#/components/schemas/tst"
+        tsi:
+          $ref: "#/components/schemas/tsi"
+        spd:
+          $ref: "#/components/schemas/spd"
+        hdg:
+          $ref: "#/components/schemas/hdg"
+        lat:
+          $ref: "#/components/schemas/lat"
+        long:
+          $ref: "#/components/schemas/long"
+        acc:
+          $ref: "#/components/schemas/acc"
+        dl:
+          $ref: "#/components/schemas/dl"
+        odo:
+          $ref: "#/components/schemas/odo"
+        drst:
+          $ref: "#/components/schemas/drst"
+        oday:
+          $ref: "#/components/schemas/oday"
+        jrn:
+          $ref: "#/components/schemas/jrn"
+        line:
+          $ref: "#/components/schemas/line"
+        start:
+          $ref: "#/components/schemas/start"
+        loc:
+          $ref: "#/components/schemas/loc"
+        stop:
+          $ref: "#/components/schemas/stop"
+        route:
+          $ref: "#/components/schemas/route"
+        occu:
+          $ref: "#/components/schemas/occu"
+        seq:
+          $ref: "#/components/schemas/seq"
+        label:
+          $ref: "#/components/schemas/label"
+        dr-type:
+          $ref: "#/components/schemas/dr-type"
+
+    oper:
+      type: integer
+      description: 'Unique ID of the operator *running* the trip (i.e. this value can be different than the operator ID in the topic, for example if the service has been subcontracted to another operator). The unique ID does not have prefix zeroes here.'
+      example: 12
+    veh:
+      type: integer
+      description: 'Vehicle number that can be seen painted on the side of the vehicle, often next to the front door. Different operators may use overlapping vehicle numbers. Matches **vehicle_number** in the topic except without the prefix zeroes.'
+      example: 10
+    tst:
+      type: string
+      format: date-time
+      description: "UTC timestamp with millisecond precision from the vehicle in ISO 8601 format (yyyy-MM-dd'T'HH:mm:ss.SSSZ)."
+      example: "2019-05-23T14:15:16.000Z"
+    tsi:
+      type: integer
+      description: 'Unix time in seconds from the vehicle.'
+      example: 1416308975
+    spd:
+      type: number
+      description: 'Speed of the vehicle, in meters per second (m/s).'
+      example: 12.5
+    hdg:
+      type: integer
+      description: 'Heading of the vehicle, in degrees (⁰) starting clockwise from geographic north. Valid values are on the closed interval [0, 360].'
+      maximum: 360
+      minimum: 0
+      example: 354
+    lat:
+      type: number
+      description: 'WGS 84 latitude in degrees. **null** if location is unavailable.'
+      example: 24.9435
+    long:
+      type: number
+      description: 'WGS 84 longitude in degrees. **null** if location is unavailable.'
+      example: 60.1967
+    acc:
+      type: number
+      description: ' Acceleration (m/s^2), calculated from the speed on this and the previous message. Negative values indicate that the speed of the vehicle is decreasing.'
+      example: -12.34
+    odo:
+      type: integer
+      description: 'The odometer reading in meters (m) since the start of the trip. Currently the values not very reliable.'
+      example: 13156
+    drst:
+      type: integer
+      enum:
+        - 0
+        - 1
+      description: >
+        Door status.
+        **0** if all the doors are closed.
+        **1** if any of the doors are open.
+    loc:
+      type: string
+      description: >
+        Location source, either **GPS**, **ODO**, **MAN** or **N/A**.
+        * **GPS** - location is received from GPS
+        * **ODO** - location is calculated based on odometer value
+        * **MAN** - location is specified manually
+        * **N/A** - location is unavailable
+      enum:
+        - GPS
+        - ODO
+        - MAN
+        - N/A
+      example: 'GPS'
+    seq:
+      type: integer
+      description: >
+        Sequence number of the unit when the journey is operated with a vehicle that consists of multiple units (e.g. metros, trains). Sequence number starts from 1.
+        **Note**: **seq** is currently only available for metros.
+      example: 12345
+    label:
+      type: string
+      description: 'User visible label that helps to identify the vehicle. Currently available only for Suomenlinna ferries with values being vessel names.'
+
+    desi:
+      type: string
+      description: 'Route number visible to passengers'
+      example: '551'
+    dir:
+      type: string
+      description: 'Route direction of the trip. After type conversion matches direction_id in GTFS and the topic. Either "1" or "2".'
+      enum:
+        - '1'
+        - '2'
+      example: '1'
+    dl:
+      type: integer
+      description: 'Offset from the scheduled timetable in seconds (s). Negative values indicate lagging behind the schedule, positive values running ahead of schedule.'
+      example: 600
+    jrn:
+      type: integer
+      description: 'Internal journey descriptor, not meant to be useful for external use.'
+      example: 1
+    line:
+      type: integer
+      description: 'Internal line descriptor, not meant to be useful for external use.'
+      example: 264
+    start:
+      type: string
+      description: 'Scheduled start time of the trip, i.e. the scheduled departure time from the first stop of the trip. The format follows **HH:mm** in 24-hour local time, not the 30-hour overlapping operating days present in GTFS. Matches `start_time` in the topic.'
+      example: '13:40'
+    stop:
+      type: integer
+      description: >
+        ID of the stop related to the event (e.g. ID of the stop where the vehicle departed from in case of `dep` event or the stop where the vehicle currently is in case of `vp` event).
+        `null` if the event is not related to any stop.
+      example: null
+    route:
+      type: string
+      description: 'ID of the route the vehicle is currently running on. Matches `route_id` in the topic.'
+      example: '2551'
+    occu:
+      type: integer
+      minimum: 0
+      maximum: 100
+      example: 0
+      description: 'Integer describing passenger occupancy level of the vehicle. Valid values are on interval `[0, 100]`. However, currently only values used are `0` (= vehicle has space and is accepting passengers) and `100` (= vehicle is full and might not accept passengers)'
+
+    oday:
+      type: string
+      description: 'Operating day of the trip. The exact time when an operating day ends depends on the route. For most routes, the operating day ends at 4:30 AM on the next day. In that case, for example, the final moment of the operating day "2018-04-05" would be at 2018-04-06T04:30 local time.'
+      example: '2019-05-23'
+
+# Excludes vp/da/dout;/ba/bout/vja/vjout
+    ttar:
+      type: string
+      description: 'UTC timestamp of scheduled arrival time to the stop.'
+      example: 1600188515
+    ttdep:
+      type: string
+      description: 'UTC timestamp of scheduled departure time from the stop.'
+      example: 1600188516
+
+    dr-type:
+      type: integer
+      enum:
+        - 0
+        - 1
+      example: 1
+      description: >
+        Type of the driver, either `0` or `1`.
+        * `0` = service technician
+        * `1` = normal driver
+    tlp-requestid:
+      type: integer
+      minimum: 0
+      maximum: 255
+      description: 'Traffic light priority request ID.'
+      example: 0
+
+# ONLY tlr
+    tlp-requesttype:
+      type: string
+      enum:
+        - NORMAL
+        - DOOR_CLOSE
+        - DOOR_OPEN
+        - ADVANCE
+      example: 'NORMAL'
+      description: 'Traffic light priority request type, either'
+    tlp-prioritylevel:
+      type: string
+      description: 'Priority level of a traffic light priority request.'
+      enum:
+        - normal
+        - high
+        - norequest
+      example: 'normal'
+    tlp-reason:
+      type: string
+      enum:
+        - GLOBAL
+        - AHEAD
+        - LINE
+        - PRIOEXEP
+      example: 'GLOBAL'
+      description: 'Reason for not sending a traffic light priority request.'
+    tlp-att-seq:
+      type: integer
+      example: 0
+      description: 'Traffic light priority request attempt sequence number.'
+    sid:
+      type: integer
+      description: 'Junction ID.'
+    signal-groupid:
+      type: integer
+      description: 'Signal group (a group of traffic lights at a junction) ID.'
+    tlp-signalgroupnbr:
+      type: integer
+      description: 'ID of the specific traffic light in a signal group. Possibly negative.'
+    tlp-line-configid:
+      type: integer
+      description: 'ID of the line configuration in DOI'
+    tlp-point-configid:
+      type: integer
+      description: 'Point configuration ID'
+    tlp-frequency:
+      type: integer
+      description: 'Frequency used for traffic light prority request'
+    tlp-protocol:
+      type: string
+      description: 'Protocol used for traffic light priority request.'
+      example: 'MQTT'
+      enum:
+        - MQTT
+        - KAR-MQTT
+
+    tlp-decision:
+      type: string
+      description: 'Response for traffic light priority request.'
+      enum:
+        - ACK
+        - NAK
+      example: 'ACK'
+
+
+
+
+
+# TLR Extras
+
+  parameters:
+    prefix:
+      description: '/hfp/ is the root of the topic tree.'
+      schema:
+        type: string
+        const: hfp
+    version:
+      description: 'v2 is the current version of the HFP topic and the payload format.'
+      schema:
+        type: string
+    journeyType:
+      description: >
+        'The type of the journey. Either **journey**, **deadrun** or **signoff**. **journey** refers to a vehicle that is running on a specific public transport journey. **deadrun** refers to a vehicle that is not on any specific route, but instead coming from a depot, for example. **signoff** is used when the vehicle PC is shut down.'
+      schema:
+        type: string
+    temporalType:
+      description: 'The status of the journey, **ongoing** or **upcoming**. **ongoing** describes a journey that is currently in operation. **upcoming** refers to the next expected journey of the same vehicle. **upcoming** messages are broadcasted shortly before the start of the next journey. One use of **upcoming** is to show the relevant vehicle to your users even before the driver has signed on to the journey that your users are interested in.'
+      schema:
+        type: string
+    eventType:
+      description: 'The event type.'
+      schema:
+        type: string
+        enum:
+          - vp
+          - due
+          - arr
+          - dep
+          - ars
+          - pde
+          - pas
+          - wait
+          - doo
+          - doc
+          - tlr
+          - tla
+          - da
+          - dout
+          - ba
+          - bout
+          - vja
+          - vjout
+    transportMode:
+      description: 'The type of the vehicle.'
+      schema:
+        type: string
+        enum:
+          - bus
+          - tram
+          - train
+          - ferry
+          - metro
+          - ubus
+          - robot
+    operatorId:
+      description: 'The unique ID of the operator that owns the vehicle.'
+      schema:
+        type: number
+        enum:
+          - 0006
+          - 0012
+          - 0017
+          - 0018
+          - 0020
+          - 0021
+          - 0022
+          - 0030
+          - 0036
+          - 0040
+          - 0045
+          - 0047
+          - 0050
+          - 0051
+          - 0054
+          - 0055
+          - 0058
+          - 0060
+          - 0089
+          - 0090
+    vehicleNumber:
+      description: 'The vehicle number that can be seen painted on the side of the vehicle, often next to the front door. Different operators may use overlapping vehicle numbers. **operator_id/vehicle_number** uniquely identifies the vehicle.'
+      schema:
+        type: integer
+        pattern: ^[0-9][0-9][0-9][0-9][0-9]
+    routeId:
+      description: 'The ID of the route the vehicle is running on. This matches route_id in GTFS (field gtfsId of Route in the [routing API](https://digitransit.fi/en/developers/apis/1-routing-api/)).'
+      schema:
+        type: string
+    directionId:
+      description: 'The line direction of the trip, either 1 or 2.'
+      schema:
+        type: integer
+        enum:
+          - 1
+          - 2
+    headsign:
+      description: 'The destination name, e.g. Aviapolis.'
+      schema:
+        type: string
+    startTime:
+      description: 'The scheduled start time of the trip, i.e. the scheduled departure time from the first stop of the trip. The format follows HH:mm in 24-hour local time.'
+      schema:
+        type: string
+        pattern: ^([01]?[0-9]|2[0-3]):[0-5][0-9]$
+    nextStop:
+      description: 'The ID of next stop or station. Updated on each departure from or passing of a stop. EOL (end of line) after final stop and empty if the vehicle is leaving HSL area. Matches stop_id in GTFS (value of gtfsId field, without HSL: prefix, in Stop type in the routing API).'
+      schema:
+        type: string
+    geohashLevel:
+      description: >
+        The geohash level represents the magnitude of change in the GPS coordinates since the previous message from the same vehicle. More exactly, **geohash_level** is equal to the minimum of the digit positions of the most significant changed digit in the [latitude and the longitude](https://digitransit.fi/en/developers/apis/4-realtime-api/vehicle-positions/#payload) since the previous message. For example, if the previous message has value (60.12345, 25.12345) for (**lat**, **long**) and the current message has value (60.12499, 25.12388), then the third digit of the fractional part is the most significant changed digit and **geohash_level** has value **3**.
+        However, **geohash_level** value **0** is overloaded. **geohash_level** is **0** if:
+        the integer part of the latitude or the longitude has changed,
+        the previous or the current message has **null** for coordinates or
+        the non-location parts of the topic have changed, e.g. when a bus departs from a stop.
+        By subscribing to specific geohash levels, you can reduce the amount of traffic into the client. By only subscribing to level **0** the client gets the most important status changes. The rough percentages of messages with a specific **geohash_level** value out of all **ongoing** messages are:
+        * 3 %
+        * 0.09 %
+        * 0.9 %
+        * 8 %
+        * 43 %
+        * 44 %
+      schema:
+        type: string
+    geohash:
+      description: >
+        The latitude and the longitude of the vehicle. The digits of the integer parts are separated into their own level in the format **<lat>;<long>**, e.g. **60;24**. The digits of the fractional parts are split and interleaved into a custom format so that e.g. (60.123, 24.789) becomes **60;24/17/28/39**. This format enables subscribing to specific geographic boundaries easily.
+        If the coordinates are missing, **geohash_level** and **geohash** have the concatenated value **0////**.
+        This geohash scheme is greatly simplified from [the original geohash scheme](https://en.wikipedia.org/wiki/Geohash)
+      schema:
+        type: string
+    sid:
+      description: 'Junction ID, corresponds to sid in the payload. Only available for tlr and tla event types, empty for other event types.'
+      schema:
+        type: string
