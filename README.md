@@ -61,6 +61,8 @@ Once they're downloaded, run this repo with:
 
 ### Using the Ingester as a kubernetes pod
 
-Firstly, you can build this into a docker image with `docker build .`. Once you've built the image, you can name it however you wish and store it on whatever service you like.
+If you wish to use one of the existing tools, you can pull from Docker Hub with `docker pull tomably/ingester:latest` to get the most recent version.
+
+If you want to make changes to match your own requirements, you can build this into a docker image with `docker build .`. Once you've built the image, you can name it however you wish and store it on whatever service you like.
 
 Next, you'll need to create a file to define the pod, and the config details. You can find examples of this in `/samples`. Once you've done that, you can use it to run the docker container using whatever kubernetes platform you'd like.
