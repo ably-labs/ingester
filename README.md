@@ -2,7 +2,7 @@
 
 This tool is intended for getting various sources, regardless of protocol or structure, into Ably.
 
-## Configuration setup
+## Configuration setup
 
 In order to use the ingester, you need to define what sort of source you intend to ingest from from the available objects, and define the various required settings. This object should be stored in the environment of your project by the name of `SOURCE_CONFIG`, and should be in a JSON format. An example config would be:
 
