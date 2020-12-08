@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gtfscomplete
+spec:
+  containers:
+  - name: ingester-container
+    image: INSERT_YOUR_INGESTER_IMAGE_LOCATION_HERE
+    env:
+      - name: ROLLBAR_TOKEN
+        value: INSERT_YOUR_ROLLBAR_TOKEN_HERE
+      - name: SOURCE_CONFIG
+        valueFrom:
+          configMapKeyRef:
+            name: configs
+            key: samplegtfscompleteconfig.json
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configs
+  namespace: default
+data:
+  samplegtfscompleteconfig.json: |
+    {
+      "displayname": "TARC geofenced spatiotemporal updates",
+      "namespace": "vehicle",
+      "type": "gtfscomplete",
+      "onlyPublishToSubscribedChannels": true,
+      "all": "http://googletransit.ridetarc.org/feed/google_transit.zip",
+      "trip_updates": "http://gtfsrealtime.ridetarc.org/realtime/TripUpdate/TripUpdates.pb",
+      "options": {
+        "ably_options": {
+          "production": {
+            "key": "INSERT_YOUR_API_KEY_HERE",
+            "maxMessageSize": 131072
+          }
+        },
+        "frequency": 30
+      }
+    }

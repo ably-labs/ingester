@@ -2,7 +2,7 @@ const Ably = require('ably');
 const Logger = require('../logging/rollbar');
 
 class AblyPublisher {
-  constructor(test, logger) {
+  constructor(test) {
     this.logger = new Logger(process.env.ROLLBAR_TOKEN);
     this.id = -1;
     this.test = test;

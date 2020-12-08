@@ -23,10 +23,15 @@
     "@asyncapi/specs": "^2.7.5",
     "ably": "^1.2.3",
     "ajv": "^6.12.6",
+    "csv-parser": "^3.0.0",
+    "gtfs-realtime-bindings": "0.0.6",
     "js-yaml": "^3.14.0",
     "json-schema-ref-parser": "^9.0.6",
     "mqtt": "^4.2.1",
     "mqtt-pattern": "^1.2.0",
-    "rollbar": "^2.19.4"
+    "request": "^2.88.2",
+    "rollbar": "^2.19.4",
+    "strip-bom-stream": "^4.0.0",
+    "unzipper": "^0.10.11"
   }
 }
