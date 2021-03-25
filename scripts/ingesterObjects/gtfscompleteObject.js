@@ -347,8 +347,12 @@ class GTFSCompleteObject extends RestObject {
     let currentTime = new Date();
     currentTime.setFullYear(2001, 0, 1);
 
+    let longestInterval = new Date(currentTime.getTime());
+    longestInterval.setSeconds(longestInterval.getSeconds() + this.streamObject.options.frequency + 60);
+
+    let lastIWithTime = 0;
+
     for (let i = 0; i < trip.path.length - 1; i++) {
-      let lastIWithTime = 0;
       let currentNode = trip.path[i];
 
       if (currentNode.arrival_time != undefined && currentNode.arrival_time != '') {
@@ -356,7 +360,8 @@ class GTFSCompleteObject extends RestObject {
 
         if (arrivalTime <= currentTime) {
           lastIWithTime = i;
-        } else {
+        }
+        if (arrivalTime >= longestInterval) {
           this.calculatePathDetails(trip, trip.path, lastIWithTime, i);
           return;
         }
@@ -373,34 +378,21 @@ class GTFSCompleteObject extends RestObject {
     let objectToSend = {};
     objectToSend.trip_id = trip.trip_id;
     objectToSend.route = [];
-
     objectToSend.route.push(this.getPointInDeltaByTime(trip.trip_id, path, startI, endI, currentTime));
 
     let longestInterval = new Date(currentTime.getTime());
-    longestInterval.setSeconds(longestInterval.getSeconds() + this.streamObject.options.frequency);
+    longestInterval.setSeconds(longestInterval.getSeconds() + this.streamObject.options.frequency + 60);
 
     let finalI = startI;
     let finalNodeIsExactTimeMatch = false;
 
-    let bottomI = startI;
-    let topI = endI;
 
     for (let i = startI+1; i < path.length; i++) {
       let time;
       if (path[i].arrival_time != undefined && path[i].arrival_time != '') {
-        bottomI = i;
-        for (let j = bottomI + 1; j < path.length; j++) {
-          if (path[j].arrival_time != undefined && path[j].arrival_time != '') {
-            topI = j;
-            break;
-          } else if (j == path.length - 1) {
-            topI = j;
-          }
-        }
         time = this.getArrivalTimeConsideringDelays(path[i], trip.trip_id, path[i].arrival_time);
-
       } else {
-        time = this.getTimeInDeltaByPoint(trip.trip_id, path, bottomI, topI, i);
+        time = this.getTimeInDeltaByPoint(trip.trip_id, path, startI, endI, i);
       }
 
       if (time <= currentTime) {
@@ -419,13 +411,22 @@ class GTFSCompleteObject extends RestObject {
         actualTime.setDate(actualTime.getDate() + currentDate.getDate() - 1);
 
         objectToSend.route.push({ 'time': actualTime, 'longitude': path[i].shape_pt_lon, 'latitude': path[i].shape_pt_lat });
+
+        // If have a departure time, add as a point so the vehicle will wait
+        if (path[i].arrival_time != undefined && path[i].arrival_time != '') {
+          let depTime = this.getDepartureTimeConsideringDelays(path[i], trip.trip_id, path[i].departure_time);
+          let actualDepTime = new Date(depTime);
+          actualTime.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), actualTime.getDate());
+          actualTime.setDate(actualTime.getDate() + currentDate.getDate() - 1);
+          objectToSend.route.push({ 'time': actualDepTime, 'longitude': path[i].shape_pt_lon, 'latitude': path[i].shape_pt_lat });
+        }
       } else {
         break;
       }
     }
 
     if (!finalNodeIsExactTimeMatch && finalI != path.length - 1) {
-      objectToSend.route.push(this.getPointInDeltaByTime(trip.trip_id, path, bottomI, topI, longestInterval));
+      objectToSend.route.push(this.getPointInDeltaByTime(trip.trip_id, path, startI, endI, longestInterval));
     }
 
     for (let zoom = MAX_ZOOM_DEPTH; zoom >= MIN_ZOOM_DEPTH; zoom--) {
@@ -496,7 +497,12 @@ class GTFSCompleteObject extends RestObject {
     let startDist = parseFloat(path[startI].shape_dist_traveled);
     let endDist = parseFloat(path[endI].shape_dist_traveled);
 
-    let startDepTime = this.getDepartureTimeConsideringDelays(path[startI], tripID, path[startI].departure_time);
+    let startDepTime;
+    if (path[startI].departure_time) {
+      startDepTime = this.getDepartureTimeConsideringDelays(path[startI], tripID, path[startI].departure_time);
+    } else {
+      startDepTime = this.getDepartureTimeConsideringDelays(path[startI], tripID, path[startI].arrival_time);
+    }
 
     let endArrTime = this.getArrivalTimeConsideringDelays(path[endI], tripID, path[endI].arrival_time);
 
@@ -511,7 +517,7 @@ class GTFSCompleteObject extends RestObject {
       priorI = startI;
     }
     // Find what nodes the current vehicle's position lies between
-    for (let i = startI; i < endI; i++) {
+    for (let i = startI; i <= endI; i++) {
       let currentDist = parseFloat(path[i].shape_dist_traveled);
       if (currentDist > distTraveled) {
         if (i == 0) {
@@ -522,23 +528,24 @@ class GTFSCompleteObject extends RestObject {
         break;
       }
     }
+
     let distBetweenNodes = parseFloat(path[priorI+1].shape_dist_traveled) - parseFloat(path[priorI].shape_dist_traveled);
     let distBetweenNodesPercent = Math.abs(distTraveled - parseFloat(path[priorI].shape_dist_traveled)) / distBetweenNodes;
 
-    let startPosX = parseFloat(path[startI].shape_pt_lat);
-    let endPosX   = parseFloat(path[endI].shape_pt_lat);
+    let startPosX = parseFloat(path[priorI].shape_pt_lat);
+    let endPosX   = parseFloat(path[priorI + 1].shape_pt_lat);
 
     let vehicleXPos = startPosX + ((endPosX - startPosX) * distBetweenNodesPercent);
 
-    let startPosY = parseFloat(path[startI].shape_pt_lon);
-    let endPosY   = parseFloat(path[endI].shape_pt_lon);
+    let startPosY = parseFloat(path[priorI].shape_pt_lon);
+    let endPosY   = parseFloat(path[priorI + 1].shape_pt_lon);
     let vehicleYPos = startPosY + ((endPosY - startPosY) * distBetweenNodesPercent);
 
     let actualTime = new Date(currentTime);
     actualTime.setFullYear(currentDate.getFullYear(), currentDate.getMonth(), actualTime.getDate());
     actualTime.setDate(actualTime.getDate() + currentDate.getDate() - 1);
 
-    return { 'time': actualTime, 'longitude': vehicleYPos, 'latitude': vehicleXPos };
+    return { 'time': actualTime, 'longitude': parseFloat(vehicleYPos), 'latitude': parseFloat(vehicleXPos) };
   }
 
   getTimeInDeltaByPoint(tripID, path, startI, endI, currentI) {
