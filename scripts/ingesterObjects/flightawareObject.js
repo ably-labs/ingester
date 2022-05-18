@@ -15,15 +15,19 @@ class flightawareObject extends RestObject {
   }
 
   parseAircraft() {
-    // Extract current timestamp
-    let timestamp = this.topLevel.now *1000;
+    // Extract current timestamp  
+    let timestamp = new Date(this.topLevel.now * 1000);
     // Extract each flight & build new structure
     let message = {};
     for (let i = 0; i <     this.topLevel.aircraft.length; i++){
       message.timestamp = timestamp;
       message.aircraft = this.topLevel.aircraft[i];
-      // Send to Ably
+      // Throw away anything which doesn't have a valid location
+      if (message.aircraft.lon != null){
+        message.geo_point = { "location": { "lat": message.aircraft.lat, "lon": message.aircraft.lon }};
+        // Send to Ably
         this.ably.publish(message, this.streamObject.namespace, this.streamObject.hide_log);
+    }
     }
   }
 
