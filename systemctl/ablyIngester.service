@@ -1,0 +1,15 @@
+[Unit]
+Description="Flightaware Ingester"
+
+[Service]
+ExecStart=/usr/bin/node index.js
+WorkingDirectory=/opt/ably-ingester/
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=FlightAware
+Environment=NODE_ENV=production PORT=8080
+
+[Install]
+WantedBy=multi-user.target
