@@ -21,9 +21,10 @@
   "homepage": "https://github.com/ably/ingester#readme",
   "dependencies": {
     "@asyncapi/specs": "^2.7.5",
-    "ably": "^1.2.3",
+    "ably": "^1.2.21",
     "ajv": "^6.12.6",
     "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.1",
     "gtfs-realtime-bindings": "0.0.6",
     "js-yaml": "^3.14.0",
     "json-schema-ref-parser": "^9.0.6",
