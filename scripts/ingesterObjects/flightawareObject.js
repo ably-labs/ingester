@@ -23,11 +23,18 @@ class flightawareObject extends RestObject {
       message.timestamp = timestamp;
       message.aircraft = this.topLevel.aircraft[i];
       // Throw away anything which doesn't have a valid location
+      // Some aircraft (REDARROW - I am looking at you!) don't send locations
+      // I want to record these even though they are not locations, so modifying 
       if (message.aircraft.lon != null){
         message.geo_point = { "location": { "lat": message.aircraft.lat, "lon": message.aircraft.lon }};
         // Send to Ably
         this.ably.publish(message, this.streamObject.namespace, this.streamObject.hide_log);
-    }
+      } else {
+        // Capture data anyway...
+        message.geo_point = { "location": { "lat": 0, "lon": 0 }};
+        // Send to Ably
+        this.ably.publish(message, this.streamObject.namespace, this.streamObject.hide_log);
+      }
     }
   }
 
