@@ -47,7 +47,7 @@ SOURCE_CONFIG = '{
 
 ### FlightAware
 
-Consuming from the FlightAware dump1090-fa Raspberry Pi JSON output.  You can install dump1090-fa by downloading and installing it from https://github.com/adsbxchange/dump1090-fa.  The format of the JSON is an array containing the latest flight data read by dump1090-fa from an RTL-SDR USB receiver.  The ingester takes the JSON and converts it into one message per aircraft.
+Consuming from the FlightAware dump1090-fa Raspberry Pi JSON output.  You can install dump1090-fa by downloading and installing it from https://github.com/flightaware/dump1090.  The format of the JSON is an array containing the latest flight data read by dump1090-fa from an RTL-SDR USB receiver.  The ingester takes the JSON and converts it into one message per aircraft.
 
 #### FlightAware config JSON
 
@@ -56,7 +56,7 @@ SOURCE_CONFIG = '{
       "displayname": "Flight Aware",
       "namespace": "flight",
       "type": "flightaware",
-      "url": "http://<flightaware-data-source-ip:8080/data/aircraft.json",
+      "url": "http://<flightaware-data-source-ip>:8080/data/aircraft.json",
       "hide_log": "true",
       "options": {
         "ably_options": {
