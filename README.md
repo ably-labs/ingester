@@ -31,7 +31,7 @@ Consuming from an MQTT endpoint using an AsyncAPI spec to define the endpoints a
 #### asyncmqtt config json
 
 ```
-{
+SOURCE_CONFIG = '{
   "namespace": "bus", // This defines the namespace in your Ably App the ingester will use
   "type": "mqtt", // This defines the Ingester Object to use
   "source": "sample_spec.yaml" // The AsyncAPI spec to be used. Currently only supports local specs
@@ -42,7 +42,7 @@ Consuming from an MQTT endpoint using an AsyncAPI spec to define the endpoints a
       }
     }
   }
-}
+}'
 ```
 
 ### FlightAware
