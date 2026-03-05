@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This project is no longer being maintained as of March 2026.
+
 # Ably Ingester
 
 This tool is intended for getting various sources, regardless of protocol or structure, into Ably.
