@@ -31,7 +31,7 @@
     "mqtt": "^4.2.1",
     "mqtt-pattern": "^1.2.0",
     "request": "^2.88.2",
-    "rollbar": "^2.19.4",
+    "rollbar": "^2.26.5",
     "strip-bom-stream": "^4.0.0",
     "unzipper": "^0.10.11"
   }
